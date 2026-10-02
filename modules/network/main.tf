@@ -9,6 +9,9 @@ resource "aws_vpc" "this" {
   tags                 = { Name = "agent-cage-vpc" }
 }
 
+resource "aws_default_security_group" "default" {
+  vpc_id = aws_vpc.this.id
+}
 # Private subnets only. There is deliberately no internet gateway and no NAT.
 resource "aws_subnet" "private" {
   count             = 2
