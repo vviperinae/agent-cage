@@ -1,4 +1,6 @@
-variable "region" { type = string }
+variable "region" {
+  type = string
+}
 
 variable "azs" {
   type    = list(string)
@@ -12,9 +14,11 @@ resource "aws_vpc" "this" {
   tags                 = { Name = "agent-cage-vpc" }
 }
 
+# Default security group with no rules: blocks all traffic
 resource "aws_default_security_group" "default" {
   vpc_id = aws_vpc.this.id
 }
+
 # Private subnets only. There is deliberately no internet gateway and no NAT.
 resource "aws_subnet" "private" {
   count             = 2
@@ -43,9 +47,7 @@ resource "aws_vpc_endpoint" "s3" {
   route_table_ids   = [aws_route_table.private.id]
 }
 
-output "vpc_id" { value = aws_vpc.this.id }
-output "private_subnet_ids" { value = aws_subnet.private[*].id }
-
+# VPC flow logs
 resource "aws_cloudwatch_log_group" "flow" {
   #checkov:skip=CKV_AWS_158:Flow logs are retained 365 days; a KMS key is a possible future hardening step
   name              = "/agent-cage/vpc-flow-logs"
@@ -85,4 +87,12 @@ resource "aws_flow_log" "this" {
   traffic_type    = "ALL"
   iam_role_arn    = aws_iam_role.flow.arn
   log_destination = aws_cloudwatch_log_group.flow.arn
+}
+
+output "vpc_id" {
+  value = aws_vpc.this.id
+}
+
+output "private_subnet_ids" {
+  value = aws_subnet.private[*].id
 }
