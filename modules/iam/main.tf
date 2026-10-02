@@ -47,14 +47,20 @@ data "aws_iam_policy_document" "assume" {
 # Permissions boundary: the hard ceiling, even if someone later attaches more
 data "aws_iam_policy_document" "boundary" {
   statement {
-    actions   = ["s3:GetObject", "s3:ListBucket", "logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"]
-    resources = ["*"]
+    actions   = ["s3:GetObject"]
+    resources = ["${aws_s3_bucket.inbox.arn}/*"]
   }
-}
-
-resource "aws_iam_policy" "boundary" {
-  name   = "${var.name}-boundary"
-  policy = data.aws_iam_policy_document.boundary.json
+  statement {
+    actions   = ["s3:ListBucket"]
+    resources = [aws_s3_bucket.inbox.arn]
+  }
+  statement {
+    actions = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"]
+    resources = [
+      "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${var.name}-*",
+      "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${var.name}-*:*",
+    ]
+  }
 }
 
 resource "aws_iam_role" "agent" {
@@ -75,7 +81,10 @@ data "aws_iam_policy_document" "agent" {
   }
   statement {
     actions   = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"]
-    resources = ["arn:aws:logs:*:*:*"]
+    resources = [
+      "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${var.name}-*",
+      "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${var.name}-*:*",
+    ]
   }
 }
 
@@ -88,3 +97,13 @@ resource "aws_iam_role_policy" "agent" {
 output "agent_role_arn" { value = aws_iam_role.agent.arn }
 output "inbox_bucket" { value = aws_s3_bucket.inbox.id }
 output "secret_bucket" { value = aws_s3_bucket.secret.id }
+
+resource "aws_s3_bucket_versioning" "inbox" {
+  bucket = aws_s3_bucket.inbox.id
+  versioning_configuration { status = "Enabled" }
+}
+
+resource "aws_s3_bucket_versioning" "secret" {
+  bucket = aws_s3_bucket.secret.id
+  versioning_configuration { status = "Enabled" }
+}
