@@ -85,21 +85,6 @@ The first Checkov run against my initial code failed. I fixed what was worth fix
 
 <br>
 
-## ⑅ ‧₊˚ ↬ `$ ls screenshots`
-<div align="center">
-
-| First scan (before) | Clean scan (after) |
-|---|---|
-| ![before](docs/screenshots/01-checkov-before.png) | ![after](docs/screenshots/02-checkov-after.png) |
-
-| Agent role + boundary | Bucket settings |
-|---|---|
-| ![role](docs/screenshots/03-iam-role-boundary.png) | ![bucket](docs/screenshots/04-s3-bucket-settings.png) |
-
-</div>
-
-<br>
-
 ## ⑅ ‧₊˚ ↬ `$ ls project_structure`
 
 ```
