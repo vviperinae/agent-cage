@@ -88,7 +88,7 @@ data "aws_iam_policy_document" "agent" {
     resources = [aws_s3_bucket.inbox.arn]
   }
   statement {
-    actions   = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"]
+    actions = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"]
     resources = [
       "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${var.name}-*",
       "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${var.name}-*:*",
@@ -148,4 +148,9 @@ resource "aws_s3_bucket_lifecycle_configuration" "secret" {
       days_after_initiation = 7
     }
   }
+}
+
+resource "aws_iam_policy" "boundary" {
+  name   = "${var.name}-boundary"
+  policy = data.aws_iam_policy_document.boundary.json
 }
