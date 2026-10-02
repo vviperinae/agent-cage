@@ -70,7 +70,10 @@ data "aws_iam_policy_document" "boundary" {
     ]
   }
 }
-
+resource "aws_iam_policy" "boundary" {
+  name   = "${var.name}-boundary"
+  policy = data.aws_iam_policy_document.boundary.json
+}
 resource "aws_iam_role" "agent" {
   name                 = "${var.name}-role"
   assume_role_policy   = data.aws_iam_policy_document.assume.json
