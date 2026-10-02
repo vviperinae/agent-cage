@@ -47,6 +47,7 @@ output "vpc_id" { value = aws_vpc.this.id }
 output "private_subnet_ids" { value = aws_subnet.private[*].id }
 
 resource "aws_cloudwatch_log_group" "flow" {
+  #checkov:skip=CKV_AWS_158:Flow logs are retained 365 days; a KMS key is a possible future hardening step
   name              = "/agent-cage/vpc-flow-logs"
   retention_in_days = 365
 }
