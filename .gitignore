@@ -3,3 +3,11 @@
 *.tfstate.*
 *.tfvars
 crash.log
+*.zip
+clean.json
+injected.json
+out*.json
+*.zip
+clean.json
+injected.json
+out*.json

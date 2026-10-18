@@ -102,6 +102,8 @@ data "aws_iam_policy_document" "assume" {
 
 # Permissions boundary: the hard ceiling, even if someone later attaches more
 data "aws_iam_policy_document" "boundary" {
+  #checkov:skip=CKV_AWS_356:VPC network interface actions do not support resource-level restrictions
+  #checkov:skip=CKV_AWS_111:Same reason
   statement {
     actions   = ["s3:GetObject"]
     resources = ["${aws_s3_bucket.inbox.arn}/*"]
@@ -116,6 +118,10 @@ data "aws_iam_policy_document" "boundary" {
       "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${var.name}-*",
       "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${var.name}-*:*",
     ]
+  }
+  statement {
+    actions   = ["ec2:CreateNetworkInterface", "ec2:DescribeNetworkInterfaces", "ec2:DeleteNetworkInterface"]
+    resources = ["*"]
   }
 }
 
@@ -125,13 +131,16 @@ resource "aws_iam_policy" "boundary" {
 }
 
 resource "aws_iam_role" "agent" {
-  name                 = "${var.name}-role"
-  assume_role_policy   = data.aws_iam_policy_document.assume.json
-  permissions_boundary = aws_iam_policy.boundary.arn
+  name                  = "${var.name}-role"
+  assume_role_policy    = data.aws_iam_policy_document.assume.json
+  permissions_boundary  = aws_iam_policy.boundary.arn
+  force_detach_policies = true
 }
 
 # Actual permissions: read the inbox bucket only
 data "aws_iam_policy_document" "agent" {
+  #checkov:skip=CKV_AWS_356:VPC network interface actions do not support resource-level restrictions
+  #checkov:skip=CKV_AWS_111:Same reason
   statement {
     actions   = ["s3:GetObject"]
     resources = ["${aws_s3_bucket.inbox.arn}/*"]
@@ -146,6 +155,10 @@ data "aws_iam_policy_document" "agent" {
       "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${var.name}-*",
       "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${var.name}-*:*",
     ]
+  }
+  statement {
+    actions   = ["ec2:CreateNetworkInterface", "ec2:DescribeNetworkInterfaces", "ec2:DeleteNetworkInterface"]
+    resources = ["*"]
   }
 }
 
@@ -165,4 +178,8 @@ output "inbox_bucket" {
 
 output "secret_bucket" {
   value = aws_s3_bucket.secret.id
+}
+
+output "agent_role_name" {
+  value = aws_iam_role.agent.name
 }
